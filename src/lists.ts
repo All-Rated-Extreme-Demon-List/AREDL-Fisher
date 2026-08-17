@@ -35,7 +35,7 @@ export type List = {
 type AREDLLevel = {
     name: string;
     position: number;
-    legacy: boolean;
+    status: 'MainList' | 'Legacy' | 'Pending' | 'Removed';
     points: number;
 };
 
@@ -75,23 +75,21 @@ export const lists = [
         cache: async () => {
             try {
                 const list = await fetch(
-                    'https://api.aredl.net/v2/api/aredl/levels',
+                    'https://api.aredl.net/v2/api/aredl/levels?exclude_legacy=true&exclude_pending=true&exclude_removed=true',
                 );
-                return ((await list.json()) as AREDLLevel[])
-                    .filter((level) => !level.legacy)
-                    .map((level) => {
-                        return {
-                            name: level.name,
-                            position: level.position,
-                            filename: level.name
-                                .toLowerCase()
-                                .replace(/[\s()]+/g, '_')
-                                .replace(/[^a-z0-9_]/g, '')
-                                .replace(/_+/g, '_')
-                                .replace(/^_+|_+$/g, ''),
-                            points: level.points / 10,
-                        };
-                    });
+                return ((await list.json()) as AREDLLevel[]).map((level) => {
+                    return {
+                        name: level.name,
+                        position: level.position,
+                        filename: level.name
+                            .toLowerCase()
+                            .replace(/[\s()]+/g, '_')
+                            .replace(/[^a-z0-9_]/g, '')
+                            .replace(/_+/g, '_')
+                            .replace(/^_+|_+$/g, ''),
+                        points: level.points / 10,
+                    };
+                });
             } catch (error) {
                 Logger.error('Failed to fetch AREDL: ' + error);
                 return [];
